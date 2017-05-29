@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Hello MUI</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="css/mui.min.css">
+		<style>
+			html,
+			body {
+				background-color: #efeff4;
+			}
+			.title {
+				padding: 20px 15px 10px;
+				color: #6d6d72;
+				font-size: 15px;
+				background-color: #fff;
+			}
+			.statusclass2 {
+				color: #2AC845;
+			}
+			.statusclass8 {
+				color: #007AFF;
+			}
+			.statusclass100 {
+				color: #CCCCCC;
+			}
+		</style>
+		<script>
+			function pullorder(){
+				mui.ajax('http://180.76.233.59:83/rider/orders/get_my_orders',{
+				data:{ 
+					rider_id:"'"+app.getState().uid+"'"
+				},
+				dataType:'json',//服务器返回json格式数据
+				type:'post',//HTTP请求类型
+				timeout:5000,//超时时间设置为10秒；
+				headers:{'Content-Type':'application/json'},	              
+				success:function(data){
+					if(data['status']==0)
+					{
+						var needSend = '';
+						var haveSended = '';
+						var orderarray = new Array();
+						orderarray[0]=data['songzhandian'];
+						orderarray[1]=data['songyonghu'];
+						orderarray[2]=data['history'];
+						for(var j=0,orderdata=orderarray[0];j<orderarray.length;++j,orderdata=orderarray[j])
+						for(var i=0;i<orderdata.length;i++){
+							var strTemp = '';
+							var status = 100;
+							if(j!=2){
+								status = orderdata[i]['status'];
+							}
+							strTemp = strTemp+'<div class="mui-card">';
+							strTemp = strTemp+'<div class="mui-card-header statusclass'+status+'">';
+								if(status == 100){
+									strTemp = strTemp + '历史订单';
+								}else{
+									strTemp = strTemp + ((status == 2)?'用户送往站点':'站点送往用户');
+								}
+							strTemp = strTemp+'</div>';
+							strTemp = strTemp+'<div class="mui-card-content">';
+							strTemp = strTemp+'<div class="mui-card-content-inner">';
+								strTemp = strTemp+'电话：';
+								strTemp = strTemp+orderdata[i]['phone']+'<br>';
+								strTemp = strTemp+'用户地址：';
+								strTemp = strTemp+orderdata[i]['address']+'<br>';
+								strTemp = strTemp+'价格：';
+								strTemp = strTemp+orderdata[i]['price']+'<br>';
+							strTemp = strTemp+'</div>';
+							strTemp = strTemp+'</div>';
+							if(status != 100){
+								strTemp = strTemp+'<div class="mui-card-footer">';
+								strTemp = strTemp+'<button onclick="sendorder('+
+								orderdata[i]['ulat']+
+								','+orderdata[i]['ulng']+
+								','+orderdata[i]['slat']+
+								','+orderdata[i]['slng']+
+								','+orderdata[i]['id']+
+								')"  class="mui-btn mui-btn-blue">派送</button>';
+								strTemp = strTemp+'</div>';
+							}
+							strTemp = strTemp+'</div>';
+							if(status == 100){
+								haveSended = haveSended + strTemp;
+							}else{
+								needSend = needSend + strTemp;
+							}
+						}
+						if((needSend + haveSended)!=''){
+							document.getElementById('order-all').innerHTML = needSend + haveSended;
+						}else{
+							document.getElementById('order-all').innerHTML = "您至今未接一个订单~快去接单赚钱吧！";
+						}
+					}
+					else{
+						document.getElementById('order-all').innerHTML = "啥也没有，要不下拉刷新看看？";
+					}
+				},
+				error:function(xhr,type,errorThrown){
+					//异常处理；
+					document.getElementById('order-all').innerHTML = "加载失败，要不下拉刷新看看？";
+				}
+				});
+			}
+			function sendorder(ulat,ulng,slat,slng,order_id){
+				var action = "";
+				var station_id = -1;
+				if(slat==undefined){
+					action = "tostation";
+					mui.ajax('http://180.76.233.59:81/station/all',{
+						data:{
+						},
+						dataType:'json',//服务器返回json格式数据
+						type:'post',//HTTP请求类型
+						timeout:5000,//超时时间设置为10秒；
+						headers:{'Content-Type':'application/json'},	              
+						success:function(data){
+							if(data['status']==0)
+								{
+									var shortest = 99999999;
+									for(var i=0;i<data['data']['stations'].length;i++){
+										var latdff = data['data']['addresses'][i]['lat'] - ulat;
+										var lngdff = data['data']['addresses'][i]['lng'] - ulng;
+										var distance = latdff*latdff + lngdff*lngdff;
+										if(distance<shortest){
+											shortest = distance;
+											slat = data['data']['addresses'][i]['lat'];
+											slng = data['data']['addresses'][i]['lng'];
+											station_id = data['data']['stations'][i]['id'];
+										}
+									}
+									mui.openWindow({
+										url:"sendorder.html",
+										id:"sendorder",
+										extras:{
+									        ulat:ulat,
+									        ulng:ulng,
+									        slat:slat,
+									        slng:slng,
+									        order_id:order_id,
+									        station_id:station_id//station_id=-1的时候就是送回用户
+									    }
+									});
+								}
+							else{
+								mui.toast('咋会没站点呢？');
+							}
+						},
+						error:function(xhr,type,errorThrown){
+							//异常处理；
+							mui.toast('系统故障，请求站点列表失败');
+						}
+					});
+				}else{
+					mui.openWindow({
+						url:"sendorder.html",
+						id:"sendorder",
+						extras:{
+					        ulat:ulat,
+					        ulng:ulng,
+					        slat:slat,
+					        slng:slng,
+					        order_id:order_id,
+					        station_id:station_id//station_id=-1的时候就是送回用户
+					    }
+					});
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<div id="pullrefresh" class="mui-content mui-scroll-wrapper">
+			<div id="order-all" class="mui-scroll">
+					如果看到此消息请尝试下拉刷新。
+			</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script src="js/app.js"></script>
+		<script>
+			mui.init({
+				swipeBack: false,
+				pullRefresh: {
+					container: '#pullrefresh',
+					down: {
+						callback: pulldownRefresh
+					}
+				}
+			});
+			mui.plusReady(function() {
+				pullorder();
+				window.addEventListener('pullorder', function() {
+					pullorder();
+				}, false);
+			});
+			/**
+			 * 下拉刷新具体业务实现
+			 */
+			function pulldownRefresh() {
+				setTimeout(function() {
+					pullorder();
+					mui('#pullrefresh').pullRefresh().endPulldownToRefresh();
+				}, 1000);
+			}
+			
+		</script>
+	</body>
+
+</html>

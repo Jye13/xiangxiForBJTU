@@ -1,0 +1,2 @@
+class RoleAuthorityship < ApplicationRecord
+end

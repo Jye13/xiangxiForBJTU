@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html class="ui-page-login">
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link href="css/style.css" rel="stylesheet" />
+		<style>
+			.area {
+				margin: 20px auto 0px auto;
+			}
+			.mui-input-group:first-child {
+				margin-top: 20px;
+			}
+			.mui-input-group label {
+				width: 35%;
+			}
+			.mui-input-row label~input,
+			.mui-input-row label~select,
+			.mui-input-row label~textarea {
+				width: 65%;
+			}
+			.mui-checkbox input[type=checkbox],
+			.mui-radio input[type=radio] {
+				top: 6px;
+			}
+			.mui-content-padded {
+				margin-top: 25px;
+			}
+			.mui-btn {
+				padding: 10px;
+			}
+			
+		</style>
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript">
+var ws=null,wo=null;
+var em=null,map=null,pcenter=null;
+var mymarker=null;
+var mypos=null;
+var upos=null;
+var spos=null;
+var searchtime=0;
+var ulat=null,ulng=null,slat=null,slng=null,order_id=null,station_id=null;
+// H5 plus事件处理
+function plusReady(){
+	if(!em||ws){return};
+	// 获取窗口对象
+	ws=plus.webview.currentWebview();
+	wo=ws.opener();
+	//高德地图坐标为(116.3974357341,39.9085574220), 百度地图坐标为(116.3975,39.9074)
+	pcenter = new plus.maps.Point(0,0);
+	setTimeout(function(){
+		map=new plus.maps.Map("map");
+		map.showZoomControls(true);
+		// 创建子窗口
+		mymarker=new plus.maps.Marker(pcenter);
+		mymarker.setIcon("images/mypoint.png");
+		updatemyposition();
+		map.addOverlay(mymarker);
+		setTimeout(function(){daohang();},1000);
+	},500);
+	// 显示页面并关闭等待框
+    ws.show("pop-in");
+}
+if(window.plus){
+	plusReady();
+}else{
+	document.addEventListener("plusready",plusReady,false);
+}
+document.addEventListener("DOMContentLoaded",function(){
+	em=document.getElementById("map");
+	window.plus&&plusReady();
+},false);
+function daohang(){
+	var searchObj = new plus.maps.Search(map);
+	searchObj.onRouteSearchComplete = function ( state, result ) {
+	if ( state == 0 ) {
+	if ( result.routeNumber <= 0 ) {
+		alert("没有检索到路径");
+		}
+		for(var i=0; i<result.routeNumber; i++){
+			map.addOverlay(result.getRoute(i));
+		}
+		} else {
+		alert("路径检索失败");
+		}
+		if(searchtime==0){
+			if(station_id==-1){
+				setTimeout(function(){searchObj.walkingSearch(spos,'北京',upos,'北京');},200);
+			}else{
+				setTimeout(function(){searchObj.walkingSearch(upos,'北京',spos,'北京');},200);
+			}
+		}
+		updatemyposition();
+		searchtime++;
+	}
+	if(upos!=null&&spos!=null){
+		var stationmaker= new plus.maps.Marker(spos);
+		var usermarker=new plus.maps.Marker(upos);
+		usermarker.setIcon("images/userpoint.png");
+		stationmaker.setIcon("images/stationpoint.png");
+		if(station_id==-1)
+			map.setCenter(spos);
+		else{
+			map.setCenter(upos);
+		}
+		map.addOverlay(usermarker);
+		map.addOverlay(stationmaker);
+		plus.maps.Map.reverseGeocode(upos,{},function(event){
+			var address = event.address;
+			//document.getElementById('address').value = address;
+			if(station_id==-1){
+				searchObj.walkingSearch(mypos,'北京',spos,'北京');
+			}else{
+				searchObj.walkingSearch(mypos,'北京',upos,'北京');
+			}
+			},function(e){
+			mui.toast("Failed:"+JSON.stringify(e));
+		});	
+	}
+}
+function updatemyposition(){
+	map.getUserLocation(function(state,pos){
+		if(0==state){
+			mypos = pos;
+			mymarker.setPoint(pos);
+			map.setCenter(pos);
+			//
+		}
+	});
+}
+function createSubview(){
+	// 创建加载内容窗口
+	var topoffset='44px';
+	if(plus.navigator.isImmersedStatusbar()){// 兼容immersed状态栏模式
+		topoffset=(Math.round(plus.navigator.getStatusbarHeight())+44)+'px';
+	}
+}
+function resetMap(){
+	map.reset();
+}
+function finishorder(){
+	if(station_id==-1){
+		//从站点送往用户
+		console.log(order_id);
+		mui.ajax('http://180.76.233.59:83/rider/orders/finish_order',{
+			data:{
+				order_id:order_id.toString(),
+				rider_id:app.getState().uid.toString()
+			},
+			dataType:'json',//服务器返回json格式数据
+			type:'post',//HTTP请求类型
+			timeout:5000,//超时时间设置为10秒；
+			headers:{'Content-Type':'application/json'},	              
+			success:function(data){
+				if(data['status']==0)
+					{
+					mui.toast('成功送达用户');
+					var orderPage = plus.webview.getWebviewById('allorder.html');
+					mui.fire(orderPage,'pullorder');
+					mui.back();
+					}
+				else{
+					mui.toast('订单异常，送达用户失败');
+				}
+			},
+			error:function(xhr,type,errorThrown){
+				//异常处理；
+				mui.toast('网络异常，送达用户失败');
+			}
+		});
+	}else{
+		console.log(order_id);
+		console.log(app.getState().uid);
+		console.log(station_id);
+		//从用户送往站点
+		mui.ajax('http://180.76.233.59:83/rider/orders/send_order_to_station',{
+			data:{
+				order_id:order_id.toString(),
+				rider_id:app.getState().uid.toString(),
+				station_id:station_id.toString()
+			},
+			dataType:'json',//服务器返回json格式数据
+			type:'post',//HTTP请求类型
+			timeout:5000,//超时时间设置为10秒；
+			headers:{'Content-Type':'application/json'},	              
+			success:function(data){
+				if(data['status']==0)
+					{
+					mui.toast('成功送达站点');
+					var orderPage = plus.webview.getWebviewById('allorder.html');
+					mui.fire(orderPage,'pullorder');
+					mui.back();
+					}
+				else{
+					mui.toast('订单异常，送达失败');
+				}
+			},
+			error:function(xhr,type,errorThrown){
+				//异常处理；
+				mui.toast('网络异常，送达失败');
+			}
+		});
+	}
+}
+		</script>
+		<link rel="stylesheet" href="../css/common.css" type="text/css" charset="utf-8"/>
+		<style type="text/css">
+#map {
+	width: 100%;
+	top: 0px;
+	height: 100%;
+	line-height: 200px;
+	text-align: center;
+	background: #FFFFFF;
+}
+.ipos {
+	background: no-repeat center center url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAsCAYAAAAn4+taAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABZ0RVh0Q3JlYXRpb24gVGltZQAwNC8wMS8xNExYUU4AAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzbovLKMAAACTklEQVRoge2YO2gUURSGv7PjEkULO4UoFooIFgtzprAPWMiWKewSTadgYWEhBjHCloGUQtYHaGEjGAQtUmgnZO9YpsqC2NgYIwjRInMscoPrYkzhGTIs8zdnzoP578ewM/eumBmjoMZ+L8BLNUjVVINUTTVI1VSDVE0jA3KgjJuGEE6LyI2iKC6JyBkzWxORF8ADVV0rw1O891ohhCngPnDyL+1PZjabZdkTV1OcQUIIV4CHMf0JvAK+A0eANjAWe1dV9ZGbMY6/kTzPzwHzMV0VkZaqTgLTqjopIi1gNfbnQwhnvbzBEcTMbgFHgXURaRdFsRFCWAa+hhCWi6LYEJE2sB7nbnp5g+9b62KMIU3Tvoh0gQm2Fz0hIt00TftAADCztqO3K8h4jJsAZnZ+sDmQ/wAQkXEc5QnyJcZjACLybLApIk/j5YmheRd5gryLMev1elOqesfMrpvZczO7pqqzvV5vGmgNzbvIDUREXsbLRES6IYTbzWZzMcuyy0mSPA4h3BWRxR3PgXkff6/vSJ7nx83sPXBqoLwJFEACHByofxSRC2mafnYxx/GJxEW9GSofAg7zJwTAa08I8N80doG9HrHx++vvJlcQVV0xs6V/zZjZkqquePpCOdv4OWBrl96WiNwrwdMfJMuyHFjYpb2gqh+8PaG8g9Uc0B+q9WO9FJUCoqrfgBm2X73EOBPrpai0o66qvgU6Me3EvDSVctTdUZIknaIoxhqNRmfv6f+T+1F3vzQy/6LUIFVTDVI11SBVUw1SNdUgVdPIgPwCtt+2JPQRVicAAAAASUVORK5CYII=);
+	background-size: 50px 44px;
+}
+	</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 id="title" class="mui-title"></h1>
+			<button onclick ="finishorder()"class="mui-btn mui-btn-blue" style="float: right;">完成派送</button>
+		</header>
+		<div class="mui-content">
+			<div id="map">地图加载中...</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script src="js/app.js"></script>
+		<script>
+			var immersed = 0;
+			var ms=(/Html5Plus\/.+\s\(.*(Immersed\/(\d+\.?\d*).*)\)/gi).exec(navigator.userAgent);
+			if(ms&&ms.length>=3){ // 当前环境为沉浸式状态栏模式
+			    immersed=parseFloat(ms[2]);// 获取状态栏的高度
+			}
+			var header=document.getElementsByTagName("header")[0];
+			header.style.paddingTop=immersed+'px';
+			header.style.height=44+immersed+'px';
+			document.getElementsByClassName("mui-content")[0].style.paddingTop=44+immersed+'px';
+			
+			mui.init();
+			mui.plusReady(function() {
+				document.getElementById("title").innerHTML='派送';
+				var self = plus.webview.currentWebview();
+				ulat=self.ulat;
+				ulng=self.ulng;
+				slat=self.slat;
+				slng=self.slng;
+				order_id=self.order_id;
+				station_id=self.station_id;
+				upos = new plus.maps.Point(ulng,ulat);
+				spos = new plus.maps.Point(slng,slat);
+				window.setInterval("updatemyposition()", 10000);
+			});
+		</script>
+	</body>
+
+</html>

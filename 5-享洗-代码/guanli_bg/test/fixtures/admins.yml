@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  nick: MyString
+  password_digest: MyString
+  is_del: 1
+
+two:
+  nick: MyString
+  password_digest: MyString
+  is_del: 1

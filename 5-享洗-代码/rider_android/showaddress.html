@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html class="ui-page-login">
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link href="css/style.css" rel="stylesheet" />
+		<style>
+			.area {
+				margin: 20px auto 0px auto;
+			}
+			.mui-input-group:first-child {
+				margin-top: 20px;
+			}
+			.mui-input-group label {
+				width: 35%;
+			}
+			.mui-input-row label~input,
+			.mui-input-row label~select,
+			.mui-input-row label~textarea {
+				width: 65%;
+			}
+			.mui-checkbox input[type=checkbox],
+			.mui-radio input[type=radio] {
+				top: 6px;
+			}
+			.mui-content-padded {
+				margin-top: 25px;
+			}
+			.mui-btn {
+				padding: 10px;
+			}
+			
+		</style>
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript">
+var ws=null,wo=null;
+var em=null,map=null,pcenter=null;
+var posdata=null;
+var action=null;
+// H5 plus事件处理
+function plusReady(){
+	if(!em||ws){return};
+	// 获取窗口对象
+	ws=plus.webview.currentWebview();
+	wo=ws.opener();
+	//高德地图坐标为(116.3974357341,39.9085574220), 百度地图坐标为(116.3975,39.9074)
+	pcenter = new plus.maps.Point(116.3975,39.9074);
+	setTimeout(function(){
+		map=new plus.maps.Map("map");
+		map.showZoomControls(true);
+		// 创建子窗口
+		setLocation();
+	},300);
+	// 显示页面并关闭等待框
+    ws.show("pop-in");
+}
+if(window.plus){
+	plusReady();
+}else{
+	document.addEventListener("plusready",plusReady,false);
+}
+// DOMContentloaded事件处理
+document.addEventListener("DOMContentLoaded",function(){
+	em=document.getElementById("map");
+	window.plus&&plusReady();
+},false);
+function setLocation(){
+	if(posdata!=null){
+		var usermarker=new plus.maps.Marker(posdata);
+		if(action=='fromuser')
+			usermarker.setIcon("images/userpoint.png");
+		else
+			usermarker.setIcon("images/stationpoint.png");
+		map.setCenter(posdata);
+		map.addOverlay(usermarker);
+		plus.maps.Map.reverseGeocode(posdata,{},function(event){
+			var address = event.address;
+			document.getElementById('address').value = address;
+			},function(e){
+				mui.toast("Failed:"+JSON.stringify(e));
+		});
+	}
+	map.getUserLocation(function(state,pos){
+		if(0==state){
+			var mymarker=new plus.maps.Marker(pos);
+			mymarker.setIcon("images/mypoint.png");
+			map.setCenter(pos);
+			map.addOverlay(mymarker);
+		}
+	});	
+}
+
+function createSubview(){
+	// 创建加载内容窗口
+	var topoffset='44px';
+	if(plus.navigator.isImmersedStatusbar()){// 兼容immersed状态栏模式
+		topoffset=(Math.round(plus.navigator.getStatusbarHeight())+44)+'px';
+	}
+}
+function resetMap(){
+	//map.centerAndZoom(pcenter,12);
+	map.reset();
+}
+		</script>
+		<link rel="stylesheet" href="../css/common.css" type="text/css" charset="utf-8"/>
+		<style type="text/css">
+#map {
+	width: 100%;
+	top: 0px;
+	height: 88%;
+	line-height: 200px;
+	text-align: center;
+	background: #FFFFFF;
+}
+.ipos {
+	background: no-repeat center center url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAsCAYAAAAn4+taAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABZ0RVh0Q3JlYXRpb24gVGltZQAwNC8wMS8xNExYUU4AAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzbovLKMAAACTklEQVRoge2YO2gUURSGv7PjEkULO4UoFooIFgtzprAPWMiWKewSTadgYWEhBjHCloGUQtYHaGEjGAQtUmgnZO9YpsqC2NgYIwjRInMscoPrYkzhGTIs8zdnzoP578ewM/eumBmjoMZ+L8BLNUjVVINUTTVI1VSDVE0jA3KgjJuGEE6LyI2iKC6JyBkzWxORF8ADVV0rw1O891ohhCngPnDyL+1PZjabZdkTV1OcQUIIV4CHMf0JvAK+A0eANjAWe1dV9ZGbMY6/kTzPzwHzMV0VkZaqTgLTqjopIi1gNfbnQwhnvbzBEcTMbgFHgXURaRdFsRFCWAa+hhCWi6LYEJE2sB7nbnp5g+9b62KMIU3Tvoh0gQm2Fz0hIt00TftAADCztqO3K8h4jJsAZnZ+sDmQ/wAQkXEc5QnyJcZjACLybLApIk/j5YmheRd5gryLMev1elOqesfMrpvZczO7pqqzvV5vGmgNzbvIDUREXsbLRES6IYTbzWZzMcuyy0mSPA4h3BWRxR3PgXkff6/vSJ7nx83sPXBqoLwJFEACHByofxSRC2mafnYxx/GJxEW9GSofAg7zJwTAa08I8N80doG9HrHx++vvJlcQVV0xs6V/zZjZkqquePpCOdv4OWBrl96WiNwrwdMfJMuyHFjYpb2gqh+8PaG8g9Uc0B+q9WO9FJUCoqrfgBm2X73EOBPrpai0o66qvgU6Me3EvDSVctTdUZIknaIoxhqNRmfv6f+T+1F3vzQy/6LUIFVTDVI11SBVUw1SNdUgVdPIgPwCtt+2JPQRVicAAAAASUVORK5CYII=);
+	background-size: 50px 44px;
+}
+	</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 id="title" class="mui-title"></h1>
+		</header>
+		<div class="mui-content">
+			<div style="height: 6%;margin: 0px;" class="mui-input-row">
+				<label style="width: 20%;">地址</label>
+				<input readonly style="width: 80%;" id='address' type="text" class="mui-input-clear mui-input"></input>
+			</div>
+			<div id="map">地图加载中...</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script src="js/app.js"></script>
+		<script>
+			var immersed = 0;
+			var ms=(/Html5Plus\/.+\s\(.*(Immersed\/(\d+\.?\d*).*)\)/gi).exec(navigator.userAgent);
+			if(ms&&ms.length>=3){ // 当前环境为沉浸式状态栏模式
+			    immersed=parseFloat(ms[2]);// 获取状态栏的高度
+			}
+			var header=document.getElementsByTagName("header")[0];
+			header.style.paddingTop=immersed+'px';
+			header.style.height=44+immersed+'px';
+			document.getElementsByClassName("mui-content")[0].style.paddingTop=44+immersed+'px';
+			
+			mui.init();
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				document.getElementById("title").innerHTML='查看地址';
+				posdata = new plus.maps.Point(self.longitude,self.latitude);
+				action = self.action;
+			});
+		</script>
+	</body>
+
+</html>

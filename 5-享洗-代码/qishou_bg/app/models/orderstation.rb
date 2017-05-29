@@ -1,0 +1,3 @@
+class Orderstation < ApplicationRecord
+
+end

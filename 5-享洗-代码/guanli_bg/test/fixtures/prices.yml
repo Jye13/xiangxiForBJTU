@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  price1: 9.99
+  price2: 9.99
+  price3: 9.99
+  price4: 9.99
+  price5: 9.99
+  price6: 9.99
+
+two:
+  price1: 9.99
+  price2: 9.99
+  price3: 9.99
+  price4: 9.99
+  price5: 9.99
+  price6: 9.99

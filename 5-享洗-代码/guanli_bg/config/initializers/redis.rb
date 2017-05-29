@@ -1,0 +1,1 @@
+$redis = Redis.new(:host => '180.76.141.171', :post => 6379)

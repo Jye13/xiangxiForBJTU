@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html class="ui-page-login">
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link href="css/style.css" rel="stylesheet" />
+		<style>
+			.area {
+				margin: 20px auto 0px auto;
+			}
+			.mui-input-group:first-child {
+				margin-top: 20px;
+			}
+			.mui-input-group label {
+				width: 35%;
+			}
+			.mui-input-row label~input,
+			.mui-input-row label~select,
+			.mui-input-row label~textarea {
+				width: 65%;
+			}
+			.mui-checkbox input[type=checkbox],
+			.mui-radio input[type=radio] {
+				top: 6px;
+			}
+			.mui-content-padded {
+				margin-top: 25px;
+			}
+			.mui-btn {
+				padding: 10px;
+			}
+			
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">结算管理</h1>
+		</header>
+		<div id="log-all" class="mui-content">
+			
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script src="js/app.js"></script>
+		<script>
+			var order_id = -1;
+			var product_name = '';
+			var product_num = -1
+			var immersed = 0;
+			var price = -1;
+			var ms=(/Html5Plus\/.+\s\(.*(Immersed\/(\d+\.?\d*).*)\)/gi).exec(navigator.userAgent);
+			if(ms&&ms.length>=3){ // 当前环境为沉浸式状态栏模式
+			    immersed=parseFloat(ms[2]);// 获取状态栏的高度
+			}
+			var header=document.getElementsByTagName("header")[0];
+			header.style.paddingTop=immersed+'px';
+			header.style.height=44+immersed+'px';
+			document.getElementsByClassName("mui-content")[0].style.marginTop=immersed+'px';
+			mui.init();
+			mui.plusReady(function() {
+				loadmoney();
+			});
+			function loadmoney(){
+				mui.ajax('http://180.76.233.59:83/rider/log/get_logs',{
+					data:{
+						rider_id:"'"+app.getState().uid+"'"
+					},
+					dataType:'json',//服务器返回json格式数据
+					type:'post',//HTTP请求类型
+					timeout:5000,//超时时间设置为10秒；
+					headers:{'Content-Type':'application/json'},	              
+					success:function(data){
+						if(data['status']==0)
+						{
+							var strTemp='';
+							var count = 0;
+							for(var i=0;i<data['logs'].length;i++){
+								strTemp = strTemp+'<div class="mui-card">';
+								strTemp = strTemp+'<div class="mui-card-header">';
+									strTemp = strTemp+'收入';
+								strTemp = strTemp+'</div>';
+								strTemp = strTemp+'<div class="mui-card-content">';
+								strTemp = strTemp+'<div class="mui-card-content-inner">';
+									strTemp = strTemp+'金额：';
+									count = count + parseFloat(data['logs'][i]['income']);
+									strTemp = strTemp+data['logs'][i]['income']+'<br>';
+									strTemp = strTemp+'日期：';
+									strTemp = strTemp+data['logs'][i]['updated_at']+'<br>';
+								strTemp = strTemp+'</div>';
+								strTemp = strTemp+'</div>';
+								strTemp = strTemp+'</div>';
+							}
+							strTemp = '<div class="mui-card"><div class="mui-card-header">总收入:'+count+'</div></div>'+strTemp;
+							document.getElementById('log-all').innerHTML=strTemp;
+						}
+						else{
+							mui.toast('流水加载失败');
+						}
+					},
+					error:function(xhr,type,errorThrown){
+						//异常处理；
+						mui.toast('系统异常，流水加载失败');
+					}
+				});
+			}
+			function charge(){
+				mui.prompt('请输入充值的金额：', '请输入大于0的数字', '充值', ['取消', '确定'], function(e) {
+					if (e.index == 1) {
+						if(isNaN(e.value)||parseFloat(e.value)<0){
+							mui.toast("输入非法！");
+						}else{
+							mui.ajax('http://180.76.233.59:82/user/card/charge',{
+								data:{
+									user_id:app.getState().uid,
+									money:parseFloat(e.value)
+								},
+								dataType:'json',//服务器返回json格式数据
+								type:'post',//HTTP请求类型
+								timeout:5000,//超时时间设置为10秒；
+								headers:{'Content-Type':'application/json'},	              
+								success:function(data){
+									if(data['status']==0)
+									{
+										mui.toast('充值成功');
+										loadmoney();
+									}
+									else{
+										mui.toast('充值失败');
+									}
+								},
+								error:function(xhr,type,errorThrown){
+									//异常处理；
+									mui.toast('系统错误，充值失败');
+								}
+							});
+						}
+					} else {
+						
+					}
+				})
+			}
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>首页</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="css/mui.min.css">
+		<style>
+			html,body {
+				background-color: #efeff4;
+			}
+			#all_good_classes{
+				margin: 0px;
+				padding: 0px;
+			}
+			li{
+				border: solid #ccc;
+				border-width: 0px 1px 1px 0px;
+				margin-right: -1px;
+				margin-top: -1px;
+				height: 33.333333vw;
+			}
+			#logo{
+				margin-left: 15%;
+				width: 70%;
+				height: 70%
+			}
+			.mui-media-body p{
+				color: #f00;
+			}
+			#slider_image img{
+				width: 100%;
+				height: 35%;
+			}
+		</style>
+		<script>
+			var cid = null;
+			function getAllCategories(){
+				mui.ajax('http://180.76.233.59:82/user/goods/getallclasses',{
+				data:{
+					id:app.getState().uid
+				},
+				dataType:'json',//服务器返回json格式数据
+				type:'post',//HTTP请求类型
+				timeout:1000,//超时时间设置为10秒；
+				headers:{'Content-Type':'application/json'},	              
+				success:function(data){
+					if(data['status']==0)
+					{
+						var all_goods_li="";
+						for(var i=0;i<data['goods'].length;i++){
+							all_goods_li=all_goods_li+"<li class=\"mui-table-view-cell mui-media mui-col-xs-4\"><a onclick=\"";
+							all_goods_li=all_goods_li+"getAllProducts("+data['goods'][i]['id']+")";
+							all_goods_li=all_goods_li+"\"><img id=\"logo\" class=\"mui-media-object\" src=\"";
+							all_goods_li=all_goods_li+data['goods'][i]['logo'];
+							all_goods_li=all_goods_li+"\"><div class=\"mui-media-body\">";
+							all_goods_li=all_goods_li+data['goods'][i]['name'];
+		                	all_goods_li=all_goods_li+"</div></a></li>";
+						}
+						document.getElementById("all_good_classes").innerHTML=all_goods_li;
+					}
+					else{
+						document.getElementById("all_good_classes").innerHTML="<li class=\"mui-table-view-cell mui-media mui-col-xs-12 \" onclick='getAllCategories()'>啥也没有。点击重新加载</li>";
+					}
+				},
+				error:function(xhr,type,errorThrown){
+					//异常处理；
+					document.getElementById("all_good_classes").innerHTML="<li class=\"mui-table-view-cell mui-media mui-col-xs-12\" onclick='getAllCategories()'>加载失败。点击重新加载</li>";
+				}
+		});
+			} 
+			function getAllProducts(id){
+				mui.ajax('http://180.76.233.59:82/user/products/getproduct',{
+				data:{
+					id:"'"+id+"'"
+				},
+				dataType:'json',//服务器返回json格式数据
+				type:'post',//HTTP请求类型
+				timeout:5000,//超时时间设置为10秒；
+				headers:{'Content-Type':'application/json'},	              
+				success:function(data){		
+					if(data['status']==0)
+					{
+						var all_products_li="";
+						for(var i=0;i<data['products'].length;i++){
+							all_products_li=all_products_li+"<li class=\"mui-table-view-cell mui-media mui-col-xs-4\"><a onclick=\"makeorder('";
+							all_products_li=all_products_li+data['products'][i]['id']+"','"+data['products'][i]['name'];//传给下一个页面的参数
+							all_products_li=all_products_li+"')\" herf=\"#\"><img id=\"logo\" class=\"mui-media-object\" src=\"";
+							all_products_li=all_products_li+data['products'][i]['logo'];
+							all_products_li=all_products_li+"\"><div class=\"mui-media-body\">";
+							all_products_li=all_products_li+data['products'][i]['name'];
+		                	all_products_li=all_products_li+"</div></a></li>";
+						}
+						all_products_li=all_products_li+"<li class=\"mui-table-view-cell mui-media mui-col-xs-4\"><a onclick=\"getAllCategories()\" href=\"#\"><img class=\"mui-media-object\" src=\"";
+						all_products_li=all_products_li+"https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1492248344025&di=5aff85b1b0d59bb0b1eade29a8e6402a&imgtype=0&src=http%3A%2F%2Fm.qqzhi.com%2Fupload%2Fimg_0_2679158030D2163567386_23.jpg";
+							all_products_li=all_products_li+"\"><div class=\"mui-media-body\">";
+							all_products_li=all_products_li+"返回";
+		                	all_products_li=all_products_li+"</div></a></li>";
+						document.getElementById("all_good_classes").innerHTML=all_products_li;
+					}
+					else{
+						document.getElementById("all_good_classes").innerHTML="啥也没有";
+					}
+				},
+				error:function(xhr,type,errorThrown){
+					//异常处理；
+					console.log(errorThrown);
+				}
+		});
+			}
+			function makeorder(pid,pname){
+			mui.openWindow({
+				
+					url:"makeorder.html",
+					id:"makeorder",
+					extras:{
+				        pid:pid,
+				        pname:pname,
+				        pprice:0
+				    }
+				});
+			}
+			function getAlladds(){
+				mui.ajax('http://180.76.233.59:81/advertisement/push',{
+				data:{
+					user_id:app.getState().uid
+				},
+				dataType:'json',//服务器返回json格式数据
+				type:'post',//HTTP请求类型
+				timeout:5000,//超时时间设置为10秒；
+				headers:{'Content-Type':'application/json'},	              
+				success:function(data){		
+					if(data['status']==0)
+					{
+						var all_images="";
+						var all_indicators='<div class="mui-indicator mui-active"></div>';
+						for(var i=0;i<data['data']['ad'].length;i++){
+							all_images = all_images + '<div class="mui-slider-item"><a onclick="makeorder(\'';
+							all_images = all_images + data['data']['ad'][i]['product_id']+"','"+data['data']['ad'][i]['product_name'];//传给下一个页面的参数
+							all_images = all_images + "')\" herf=\"#\"><img id=\"ad_image\" src=\"";
+							all_images = all_images + data['data']['ad'][i]['ad_logo'];
+							all_images = all_images + "\"><p class=\"mui-slider-title\">";
+							all_images = all_images + data['data']['ad'][i]['product_name'];
+							all_images = all_images + "</p></div>";
+							if(i!=0){
+								all_indicators = all_indicators+'<div class="mui-indicator"></div>';
+							}
+						}
+						var addation="";
+						if(data['data']['ad'].length>1){
+							var i = data['data']['ad'].length - 1;
+							addation = addation + '<div class="mui-slider-item mui-slider-item-duplicate"><a onclick="makeorder(\'';
+							addation = addation + data['data']['ad'][i]['product_id']+"','"+data['data']['ad'][i]['product_name'];//传给下一个页面的参数
+							addation = addation + "')\" herf=\"#\"><img id=\"ad_image\" src=\"";
+							addation = addation + data['data']['ad'][i]['ad_logo'];
+							addation = addation + "\"><p class=\"mui-slider-title\">";
+							addation = addation + data['data']['ad'][i]['product_name'];
+							addation = addation + "</p></div>";
+							all_images = addation + all_images;
+							all_images = all_images + '<div class="mui-slider-item mui-slider-item-duplicate"><a onclick="makeorder(\'';
+							all_images = all_images + data['data']['ad'][0]['product_id']+"','"+data['data']['ad'][0]['product_name'];//传给下一个页面的参数
+							all_images = all_images + "')\" herf=\"#\"><img id=\"ad_image\" src=\"";
+							all_images = all_images + data['data']['ad'][0]['ad_logo'];
+							all_images = all_images + "\"><p class=\"mui-slider-title\">";
+							all_images = all_images + data['data']['ad'][0]['product_name'];
+							all_images = all_images + "</p></div>";
+							mui("#slider").slider({
+								interval: 2000
+							});
+						}
+						document.getElementById("slider_image").innerHTML = all_images;
+						document.getElementById("slider_indicator").innerHTML = all_indicators;
+					}
+					else{
+						
+					}
+				},
+				error:function(xhr,type,errorThrown){
+					//异常处理；
+					console.log(errorThrown);
+				}
+				});
+			}
+		</script>
+	</head>
+	<body>
+		<div class="mui-content">
+			<div id="slider" class="mui-slider">
+				<div id="slider_image" class="mui-slider-group mui-slider-loop">
+					<div class="mui-slider-item">
+						<a href="#">
+							<img src="images/logo.png">
+							<p class="mui-slider-title">广告加载失败</p>
+						</a>
+					</div>
+				</div>
+				<div id="slider_indicator" class="mui-slider-indicator mui-text-right">
+					<div class="mui-indicator mui-active"></div>
+				</div>
+			</div>
+		    <ul id="all_good_classes" class="mui-table-view mui-grid-view">
+		  		<li class="mui-table-view-cell mui-media mui-col-xs-12">加载中....</li>
+		    </ul>
+		    
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script src="js/app.js"></script>
+		<script>
+			mui.init();
+			mui.plusReady(function() {
+				getAllCategories();
+				getAlladds();
+			});
+		</script>
+	</body>
+</html>

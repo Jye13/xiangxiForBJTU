@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  merchant_id: 1
+  price: 9.99
+  discount: 9.99
+  order_id: 1
+
+two:
+  merchant_id: 1
+  price: 9.99
+  discount: 9.99
+  order_id: 1

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Hello MUI</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="css/mui.min.css">
+		<style>
+			html,body {
+				background-color: #efeff4;
+			}
+			.title{
+				margin: 20px 15px 10px;
+				color: #6d6d72;
+				font-size: 15px;
+			}
+			.mui-locker {
+				margin: 35px auto;
+				display: none;
+			}
+		</style>
+		<script>
+			function manageaddress(){
+				mui.openWindow({
+					url:"manageaddress.html",
+					id:"manageaddress"
+				});
+			}
+			function managemoney(){
+				mui.openWindow({
+					url:"managemoney.html",
+					id:"managemoney"
+				});
+			}
+		</script>
+	</head>
+
+	<body>
+		<div class="mui-content">
+			<div class="title">
+				<div style="text-align:center;margin:0 auto; width: 120px;height: 120px; background: #fff;border-radius:50px">
+					<img style="width: 90px;border-radius:50px"" id="avatar" src="images/default_head.png">
+				</div>
+			</div>
+			<ul class="mui-table-view">
+				<li class="mui-table-view-cell">
+					<a id="address" onclick="managemoney()" class="mui-navigate-right">
+						账户余额
+					</a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a id="address" onclick="manageaddress()" class="mui-navigate-right">
+						地址管理
+					</a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a id="share" class="mui-navigate-right">
+						分享推荐
+					</a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a id="tel" class="mui-navigate-right">
+						客服电话
+					</a>
+				</li>
+			</ul>
+			<ul class="mui-table-view" style="margin-top: 25px;display: none;">
+				<li id="" class="mui-table-view-cell">
+					刷脸支付
+					<div id="facePay" class="mui-switch">
+						<div class="mui-switch-handle"></div>
+					</div>
+				</li>
+			</ul>
+			<ul class="mui-table-view" style="margin-top: 25px;">
+				<li class="mui-table-view-cell">
+					<a id='exit' style="text-align: center;color: #FF3B30;">
+						退出登录
+					</a>
+				</li>
+			</ul>
+		</div>
+	</body>
+	<script src="js/common.js"></script>
+	<script src="js/facepay.js"></script>
+	<script src="js/mui.min.js"></script>
+	<script src="js/app.js"></script>
+	<script src="js/mui.locker.js"></script>
+	<script src="js/mui.view.js "></script>
+	<script src='libs/easymob-webim-sdk/jquery-1.11.1.js'></script>
+	<script src='libs/easymob-webim-sdk/strophe-custom-2.0.0.js'></script>
+	<script src='libs/easymob-webim-sdk/json2.js'></script>
+	<script src="libs/easymob-webim-sdk/easemob.im-1.0.5.js"></script>
+	<script>
+	
+		function load_avatar(){
+			mui.ajax('http://180.76.233.59:82/user/info/get_avatar',{
+				data:{
+					id:"'"+app.getState().uid+"'"
+				},
+				dataType:'json',//服务器返回json格式数据
+				type:'post',//HTTP请求类型
+				timeout:10000,//超时时间设置为10秒；
+				headers:{'Content-Type':'application/json'},	              
+				success:function(data){
+					if(data['status']==0)
+					{
+						if(data['avatar'][0]['avatar']!=null){
+							document.getElementById('avatar').src = data['avatar'][0]['avatar'];
+						}
+					}
+					else{
+ 						mui.toast("头像加载失败");
+					}
+				},
+				error:function(xhr,type,errorThrown){
+					mui.toast("网络异常，头像加载失败"+errorThrown);
+				}
+			});
+		}
+		mui.init({
+			swipeBack:true //启用右滑关闭功能
+		});
+		mui.plusReady(function() {
+			plus.share.getServices(function(s) {
+				if (s && s.length > 0) {
+					for (var i = 0; i < s.length; i++) {
+						var t = s[i];
+						shares[t.id] = t;
+					}
+				}
+			}, function() {
+				console.log("获取分享服务列表失败");
+			});
+			window.addEventListener('load_avatar', function() {
+					load_avatar();
+				}, false);
+			load_avatar();
+		});
+		 //分享链接点击事件
+		var shares = {};
+		document.getElementById("share").addEventListener('tap', function() {
+			var ids = [{
+					id: "qq"
+				}],
+				bts = [{
+					title: "分享到QQ"
+				}];
+			plus.nativeUI.actionSheet({
+				cancel: "取消",
+				buttons: bts
+			}, function(e) {
+				var i = e.index;
+				if (i > 0) {
+					var s_id = ids[i - 1].id;
+					var share = shares[s_id];
+					if (share.authenticated) {
+						shareMessage(share, ids[i - 1].ex);
+					} else {
+						share.authorize(function() {
+							shareMessage(share, ids[i - 1].ex);
+						}, function(e) {
+							console.log("认证授权失败：" + e.code + " - " + e.message);
+							mui.toast("未安装该客户端");
+						});
+					}
+				}
+			});
+		});
+		function shareMessage(share, ex) {
+				var msg = {
+					extra: {
+						scene: ex
+					}
+				};
+				msg.href = "http://180.76.233.59:8999";
+				msg.title = "享洗";
+				msg.content = "享受洗衣，爱生活。";
+				if (~share.id.indexOf('weibo')) {
+					msg.content += "；体验地址：http://180.76.233.59:8999";
+				}
+				msg.thumbs = ["../images/qq.png"];
+				share.send(msg, function() {
+					console.log("分享到\"" + share.description + "\"成功！ ");
+				}, function(e) {
+					console.log("分享到\"" + share.description + "\"失败: " + e.code + " - " + e.message);
+				});
+			}
+		//客服电话
+		document.getElementById("tel").addEventListener('tap', function() {
+			plus.device.dial("15611815839");
+		});
+		 //退出操作******************
+		document.getElementById('exit').addEventListener('tap', function() {
+			if (mui.os.ios) {
+				app.setState({});
+				mui.openWindow({
+					url: 'login.html',
+					id: 'login',
+					show: {
+						aniShow: 'pop-in'
+					},
+					waiting: {
+						autoShow: false
+					}
+				});
+				return;
+			}
+			var btnArray = [{
+				title: "注销当前账号"
+			}, {
+				title: "直接关闭应用"
+			}];
+			plus.nativeUI.actionSheet({
+				cancel: "取消",
+				buttons: btnArray
+			}, function(event) {
+				var index = event.index;
+				switch (index) {
+					case 1:
+						//注销账号
+						app.setState({});
+						/*
+						 * 注意：
+						 * 1、因本示例应用启动页就是登录页面，因此注册成功后，直接显示登录页即可；
+						 * 2、如果真实案例中，启动页不是登录页，则需修改，使用mui.openWindow打开真实的登录页面
+						 */
+						plus.webview.getLaunchWebview().show("pop-in");
+						//若启动页不是登录页，则需通过如下方式打开登录页
+//						mui.openWindow({
+//							url: 'login.html',
+//							id: 'login',
+//							show: {
+//								aniShow: 'pop-in'
+//							}
+//						});
+						break;
+					case 2:
+						plus.runtime.quit();
+						break;
+				}
+			});
+		}, false);
+		 //************************
+		 //锁屏设置
+		(function($, doc) {
+			//$.init();
+			$.plusReady(function() {
+				var settings = app.getSettings();
+				var facePaySwitch = doc.getElementById("facePay");
+				facePaySwitch.addEventListener('toggle', function(event) {
+					var isActive = event.detail.isActive;
+					mui.toast(111);
+					plus.facepay.facePay("Html5","Plus","AsyncFunction","MultiArgument!", function( result ) {alert( result[0]  + "_" + result[1]  + "_" + result[2]  + "_" + result[3] );},function(result){alert(result)});
+					if (!isActive) {
+					}
+				}, false);
+				var avatar_img = doc.getElementById("avatar");
+				avatar_img.addEventListener('tap', function() { 
+			            if (mui.os.plus) { 
+			                var a = [{ 
+			                    title: "拍照" 
+			                }, { 
+			                    title: "从手机相册选择" 
+			                }]; 
+			                plus.nativeUI.actionSheet({ 
+			                    title: "修改用户头像", 
+			                    cancel: "取消", 
+			                    buttons: a 
+			                }, function(b) { /*actionSheet 按钮点击事件*/ 
+			                    switch (b.index) { 
+			                        case 0: 
+			                            break; 
+			                        case 1: 
+			                            app.getImage('id_back_value'); /*拍照*/ 
+			                            break; 
+			                        case 2: 
+			                            app.galleryImg('id_back_value');/*打开相册*/ 
+			                            break;  
+			                        default: 
+			                            break; 
+			                    } 
+			                }) 
+			            } 
+			        }, false); 
+			});
+		}(mui, document));
+		
+	</script>
+</html>

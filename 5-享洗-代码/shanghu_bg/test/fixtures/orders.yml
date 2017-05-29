@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  total_price: 9.99
+  status: 1
+  user_id_integer: MyString
+  address_id: 1
+  rider_id: 1
+  merchant_id: 1
+
+two:
+  total_price: 9.99
+  status: 1
+  user_id_integer: MyString
+  address_id: 1
+  rider_id: 1
+  merchant_id: 1

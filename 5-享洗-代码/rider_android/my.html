@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Hello MUI</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="css/mui.min.css">
+		<style>
+			html,body {
+				background-color: #efeff4;
+			}
+			.title{
+				margin: 20px 15px 10px;
+				color: #6d6d72;
+				font-size: 15px;
+			}
+			.mui-locker {
+				margin: 35px auto;
+				display: none;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="mui-content">
+			<ul class="mui-table-view">
+				<li class="mui-table-view-cell">
+					<a id="log" class="mui-navigate-right">
+						结算管理
+					</a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a id="share" class="mui-navigate-right">
+						分享推荐
+					</a>
+				</li>
+				<li class="mui-table-view-cell">
+					<a id="tel" class="mui-navigate-right">
+						客服电话
+					</a>
+				</li>
+			</ul>
+			<ul class="mui-table-view" style="margin-top: 25px;">
+				<li class="mui-table-view-cell">
+					<a id='exit' style="text-align: center;color: #FF3B30;">
+						退出登录
+					</a>
+				</li>
+			</ul>
+		</div>
+	</body>
+	<script src="js/mui.min.js"></script>
+	<script src="js/app.js"></script>
+	<script src="js/mui.locker.js"></script>
+	<script src="js/mui.view.js "></script>
+	<script src='libs/easymob-webim-sdk/jquery-1.11.1.js'></script>
+	<script src='libs/easymob-webim-sdk/strophe-custom-2.0.0.js'></script>
+	<script src='libs/easymob-webim-sdk/json2.js'></script>
+	<script src="libs/easymob-webim-sdk/easemob.im-1.0.5.js"></script>
+
+	<script>
+		mui.init({
+			swipeBack:true //启用右滑关闭功能
+		});
+		mui.plusReady(function() {
+			plus.share.getServices(function(s) {
+				if (s && s.length > 0) {
+					for (var i = 0; i < s.length; i++) {
+						var t = s[i];
+						shares[t.id] = t;
+					}
+				}
+			}, function() {
+				console.log("获取分享服务列表失败");
+			});
+		});
+		//客服电话
+		document.getElementById("log").addEventListener('tap', function() {
+			mui.openWindow({
+				url:"moneylog.html",
+				id:"moneylog"
+			});
+		});
+		 //分享链接点击事件
+		var shares = {};
+		document.getElementById("share").addEventListener('tap', function() {
+			var ids = [{
+					id: "qq"
+				}],
+				bts = [{
+					title: "分享到QQ"
+				}];
+			plus.nativeUI.actionSheet({
+				cancel: "取消",
+				buttons: bts
+			}, function(e) {
+				var i = e.index;
+				if (i > 0) {
+					var s_id = ids[i - 1].id;
+					var share = shares[s_id];
+					if (share.authenticated) {
+						shareMessage(share, ids[i - 1].ex);
+					} else {
+						share.authorize(function() {
+							shareMessage(share, ids[i - 1].ex);
+						}, function(e) {
+							console.log("认证授权失败：" + e.code + " - " + e.message);
+							mui.toast("未安装该客户端");
+						});
+					}
+				}
+			});
+		});
+		function shareMessage(share, ex) {
+				var msg = {
+					extra: {
+						scene: ex
+					}
+				};
+				msg.href = "http://180.76.233.59:8999";
+				msg.title = "享洗";
+				msg.content = "享受洗衣，爱生活。";
+				if (~share.id.indexOf('weibo')) {
+					msg.content += "；体验地址：http://180.76.233.59:8999";
+				}
+				msg.thumbs = ["../images/qq.png"];
+				share.send(msg, function() {
+					console.log("分享到\"" + share.description + "\"成功！ ");
+				}, function(e) {
+					console.log("分享到\"" + share.description + "\"失败: " + e.code + " - " + e.message);
+				});
+			}
+		//客服电话
+		document.getElementById("tel").addEventListener('tap', function() {
+			plus.device.dial("15611815839");
+		});
+		 //退出操作******************
+		document.getElementById('exit').addEventListener('tap', function() {
+			if (mui.os.ios) {
+				app.setState({});
+				mui.openWindow({
+					url: 'login.html',
+					id: 'login',
+					show: {
+						aniShow: 'pop-in'
+					},
+					waiting: {
+						autoShow: false
+					}
+				});
+				return;
+			}
+			var btnArray = [{
+				title: "注销当前账号"
+			}, {
+				title: "直接关闭应用"
+			}];
+			plus.nativeUI.actionSheet({
+				cancel: "取消",
+				buttons: btnArray
+			}, function(event) {
+				var index = event.index;
+				switch (index) {
+					case 1:
+						//注销账号
+						app.setState({});
+						/*
+						 * 注意：
+						 * 1、因本示例应用启动页就是登录页面，因此注册成功后，直接显示登录页即可；
+						 * 2、如果真实案例中，启动页不是登录页，则需修改，使用mui.openWindow打开真实的登录页面
+						 */
+						plus.webview.getLaunchWebview().show("pop-in");
+						//若启动页不是登录页，则需通过如下方式打开登录页
+//						mui.openWindow({
+//							url: 'login.html',
+//							id: 'login',
+//							show: {
+//								aniShow: 'pop-in'
+//							}
+//						});
+						break;
+					case 2:
+						plus.runtime.quit();
+						break;
+				}
+			});
+		}, false);
+		 //************************
+		 //锁屏设置
+		(function($, doc) {
+			//$.init();
+			$.plusReady(function() {
+				var settings = app.getSettings();
+				var lockStateButton = doc.getElementById("lockState");
+				var locker = doc.querySelector('.mui-locker');
+				var content = doc.querySelector('.mui-content');
+				lockStateButton.classList[settings.gestures ? 'add' : 'remove']('mui-active')
+				locker.style.display = 'none';
+				lockStateButton.addEventListener('toggle', function(event) {
+					var isActive = event.detail.isActive;
+					locker.style.display = isActive&&settings.gestures=='' ? 'block' : 'none';
+					content.style.display = isActive ? 'none' : 'block';
+					if (!isActive) {
+						//						alert(0);
+						settings.gestures = '';
+						app.setSettings(settings);
+					}
+				}, false);
+				var record = [];
+				locker.addEventListener('done', function(event) {
+					var rs = event.detail;
+					if (rs.points.length < 4) {
+						plus.nativeUI.toast('设定的手势太简单了');
+						record = [];
+						rs.sender.clear();
+						return;
+					}
+					record.push(rs.points.join(''));
+					if (record.length >= 2) {
+						if (record[0] == record[1]) {
+							content.style.display = 'block';
+							locker.style.display = 'none';
+							plus.nativeUI.toast('解锁手势设定成功，以后用户只需使用手势解锁而无需输入密码登录。');
+							settings.gestures = record[0];
+							settings.autoLogin = true;
+							app.setSettings(settings);
+							setTimeout(function() {
+								$.back();
+							}, 200);
+						} else {
+							plus.nativeUI.toast('两次手势不一致,请重新设定');
+						}
+						rs.sender.clear();
+						record = [];
+					} else {
+						plus.nativeUI.toast('请确认手势设定');
+						rs.sender.clear();
+					}
+				}, false);
+			});
+		}(mui, document));
+		
+	</script>
+</html>

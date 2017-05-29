@@ -1,0 +1,3 @@
+class Riderorder < ApplicationRecord
+
+end

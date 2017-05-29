@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="ui-page-login">
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link href="css/style.css" rel="stylesheet" />
+		<style>
+			.area {
+				margin: 20px auto 0px auto;
+			}
+			.mui-input-group:first-child {
+				margin-top: 20px;
+			}
+			.mui-input-group label {
+				width: 35%;
+			}
+			.mui-input-row label~input,
+			.mui-input-row label~select,
+			.mui-input-row label~textarea {
+				width: 65%;
+			}
+			.mui-checkbox input[type=checkbox],
+			.mui-radio input[type=radio] {
+				top: 6px;
+			}
+			.mui-content-padded {
+				margin-top: 25px;
+			}
+			.mui-btn {
+				padding: 10px;
+			}
+			#origin_price{
+				color:#DD524D;
+			}
+			#real_price{
+				color:#4CD964;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">支付</h1>
+		</header>
+		<div class="mui-content">
+			<div class="mui-card">
+				<div id="product_name" class="mui-card-header">商品名</div>
+				<div class="mui-card-content">
+					<div class="mui-card-content-inner">
+						个数：<p id="product_num">1</p>
+						原价:<p id="origin_price">1</p>
+						优惠后:<p id="real_price">1</p>
+						优惠券：<br>
+						<select onchange="conponchange()" id="conpons">
+						</select>
+					</div>
+				</div>
+				<div class="mui-card-footer">
+					<button onclick="pay()" class="mui-btn-success">支付</button>
+				</div>
+			</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script src="js/app.js"></script>
+		<script>
+			var order_id = -1;
+			var product_name = '';
+			var product_num = -1
+			var immersed = 0;
+			var price = -1;
+			var ms=(/Html5Plus\/.+\s\(.*(Immersed\/(\d+\.?\d*).*)\)/gi).exec(navigator.userAgent);
+			if(ms&&ms.length>=3){ // 当前环境为沉浸式状态栏模式
+			    immersed=parseFloat(ms[2]);// 获取状态栏的高度
+			}
+			var header=document.getElementsByTagName("header")[0];
+			header.style.paddingTop=immersed+'px';
+			header.style.height=44+immersed+'px';
+			document.getElementsByClassName("mui-content")[0].style.marginTop=immersed+'px';
+			mui.init();
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				order_id = self.order_id;
+				product_name = self.product_name;
+				product_num = self.product_num;
+				price = self.price;
+				document.getElementById('product_name').innerHTML = product_name;
+				document.getElementById('product_num').innerHTML = product_num;
+				document.getElementById('origin_price').innerHTML = price;
+				document.getElementById('real_price').innerHTML = price;
+				loadcoupons();
+			});
+			function loadcoupons(){
+				mui.ajax('http://180.76.233.59:82/user/coupon/get_coupons',{
+					data:{
+						user_id:"'"+app.getState().uid+"'",
+						price:"'"+price+"'"
+					},
+					dataType:'json',//服务器返回json格式数据
+					type:'post',//HTTP请求类型
+					timeout:5000,//超时时间设置为10秒；
+					headers:{'Content-Type':'application/json'},	              
+					success:function(data){
+						if(data['status']==0)
+						{
+							var ops = '';
+							for(var i=0;i<data['coupon'].length;i++){
+								if(i==0){
+									document.getElementById('real_price').innerHTML = price - data['coupon'][i]['discount'];
+								}
+								ops = ops + '<option value="'; 
+								ops = ops + data['coupon'][i]['id'];
+								ops = ops + ',';
+								ops = ops + data['coupon'][i]['discount'];
+								ops = ops + '">';
+								ops = ops + data['coupon'][i]['name'];
+								ops = ops + '</option>'
+							}
+							document.getElementById('conpons').innerHTML=ops;
+						}
+						else{
+							mui.toast('优惠券加载失败');
+						}
+					},
+					error:function(xhr,type,errorThrown){
+						//异常处理；
+						mui.toast('系统异常，优惠券加载失败');
+					}
+				});
+			}
+			function pay(){
+				mui.ajax('http://180.76.233.59:82/user/orders/pay_order',{
+					data:{
+						coupon_id:document.getElementById('conpons').value.split(",")[0],
+						order_id:order_id,
+						price:price,
+						user_id:app.getState().uid,
+						discount:document.getElementById('conpons').value.split(",")[1]
+					},
+					dataType:'json',//服务器返回json格式数据
+					type:'post',//HTTP请求类型
+					timeout:5000,//超时时间设置为10秒；
+					headers:{'Content-Type':'application/json'},	              
+					success:function(data){
+						if(data['status']==0)
+						{
+							mui.toast('支付成功');
+							var makeorderPage = plus.webview.getWebviewById('order.html');
+							mui.fire(makeorderPage,'pullorder');
+							mui.back();
+						}
+						else{
+							mui.toast('支付失败');
+						}
+					},
+					error:function(xhr,type,errorThrown){
+						//异常处理；
+						mui.toast('支付失败');
+					}
+				});
+			}
+			function conponchange(){
+				document.getElementById('real_price').innerHTML = price - document.getElementById('conpons').value.value.split(",")[1];
+			}
+		</script>
+	</body>
+
+</html>

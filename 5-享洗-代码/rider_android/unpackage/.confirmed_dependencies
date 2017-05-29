@@ -1,0 +1,281 @@
+{
+  "main.html": {
+    "refer": [
+      "setting.html",
+      "home.html",
+      "my.html",
+      "tab-webview-subpage-chat.html",
+      "tab-webview-subpage-about.html",
+      "order.html",
+      "tab-webview-subpage-home.html",
+      "tab-webview-subpage-order.html",
+      "tab-webview-subpage-setting.html",
+      "allorder.html",
+      "graborder.html",
+      "historyorder.html"
+    ],
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "home.html",
+      "fonts/mui.ttf",
+      "tab-webview-subpage-home.html",
+      "my.html",
+      "css/common.css",
+      "js/common.js",
+      "graborder.html"
+    ]
+  },
+  "login.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "images/sinaweibo.png",
+      "css/mui.min.css",
+      "css/style.css",
+      "images/weixin.png",
+      "images/qq.png",
+      "js/mui.enterfocus.js",
+      "fonts/mui.ttf",
+      "images/logo.png"
+    ],
+    "refer": [
+      "main.html",
+      "reg.html",
+      "forget_password.html",
+      "unlock.html"
+    ]
+  },
+  "setting.html": {
+    "resources": [
+      "libs/easymob-webim-sdk/easemob.im-1.0.5.js",
+      "fonts/mui.ttf",
+      "libs/easymob-webim-sdk/json2.js",
+      "libs/easymob-webim-sdk/jquery-1.11.1.js",
+      "js/mui.locker.js",
+      "js/feedback.js",
+      "css/feedback-page.css",
+      "js/feedback-page.js",
+      "libs/easymob-webim-sdk/strophe-custom-2.0.0.js",
+      "js/mui.view.js",
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "images/iconfont-tianjia.png",
+      "tab-webview-subpage-about.html",
+      "js/immersed.js"
+    ],
+    "refer": [
+      "tab-webview-subpage-about.html",
+      "tab-webview-subpage-setting.html",
+      "tab-webview-subpage-chat.html",
+      "tab-webview-subpage-contact.html",
+      "main.html"
+    ]
+  },
+  "reg.html": {
+    "resources": [
+      "fonts/mui.ttf",
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "css/style.css"
+    ],
+    "refer": []
+  },
+  "forget_password.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "css/style.css",
+      "fonts/mui.ttf"
+    ],
+    "refer": []
+  },
+  "unlock.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "js/mui.locker.js"
+    ],
+    "refer": [
+      "login.html"
+    ]
+  },
+  "tab-webview-subpage-about.html": {
+    "resources": [
+      "js/mui.min.js",
+      "js/immersed.js",
+      "css/mui.min.css",
+      "js/app.js"
+    ],
+    "refer": []
+  },
+  "tab-webview-subpage-chat.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "js/app.js"
+    ],
+    "refer": []
+  },
+  "tab-webview-subpage-setting.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css"
+    ],
+    "refer": []
+  },
+  "my.html": {
+    "resources": [
+      "libs/easymob-webim-sdk/easemob.im-1.0.5.js",
+      "libs/easymob-webim-sdk/json2.js",
+      "libs/easymob-webim-sdk/jquery-1.11.1.js",
+      "js/mui.locker.js",
+      "js/feedback.js",
+      "css/feedback-page.css",
+      "js/feedback-page.js",
+      "libs/easymob-webim-sdk/strophe-custom-2.0.0.js",
+      "js/mui.view.js",
+      "js/app.js",
+      "images/iconfont-tianjia.png",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "fonts/mui.ttf"
+    ],
+    "refer": [
+      "manageaddress.html",
+      "moneylog.html"
+    ]
+  },
+  "home.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "fonts/mui.ttf",
+      "makeorder.html"
+    ],
+    "refer": [
+      "makeorder.html"
+    ]
+  },
+  "tab-webview-subpage-home.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ],
+    "refer": []
+  },
+  "order.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "css/app.css",
+      "images/logo.png",
+      "js/app.js"
+    ],
+    "refer": []
+  },
+  "makeorder.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "css/style.css"
+    ],
+    "refer": [
+      "addadress.html",
+      "addaddress.html"
+    ]
+  },
+  "addadress.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "css/style.css",
+      "fonts/mui.ttf",
+      "images/location-point.png"
+    ],
+    "refer": []
+  },
+  "manageaddress.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "css/style.css",
+      "fonts/mui.ttf"
+    ],
+    "refer": [
+      "addaddress.html"
+    ]
+  },
+  "addaddress.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "css/style.css"
+    ],
+    "refer": []
+  },
+  "allorder.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ],
+    "refer": [
+      "sendorder.html"
+    ]
+  },
+  "graborder.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ],
+    "refer": [
+      "showaddress.html"
+    ]
+  },
+  "showaddress.html": {
+    "resources": [
+      "fonts/mui.ttf",
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "css/style.css"
+    ],
+    "refer": []
+  },
+  "sendorder.html": {
+    "resources": [
+      "fonts/mui.ttf",
+      "css/style.css",
+      "js/app.js",
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ]
+  },
+  "moneylog.html": {
+    "resources": [
+      "js/app.js",
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "css/style.css"
+    ]
+  }
+}

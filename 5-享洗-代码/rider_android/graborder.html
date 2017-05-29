@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Hello MUI</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="css/mui.min.css">
+		<style>
+			html,
+			body {
+				background-color: #efeff4;
+			}
+			.title {
+				padding: 20px 15px 10px;
+				color: #6d6d72;
+				font-size: 15px;
+				background-color: #fff;
+			}
+			.statusclass0 {
+				color: #EC971F;
+			}
+			.statusclass1 {
+				color: #007AFF;
+			}
+			.statusclass2 {
+				color: #8A6DE9;
+			}
+			.statusclass3 {
+				color: #4CD964;
+			}
+			.statusclass4 {
+				color: #007AFF;
+			}
+			.statusclass5 {
+				color: #007AFF;
+			}
+			.statusclass6 {
+				color: #007AFF;
+			}
+			.statusclass7 {
+				color: #007AFF;
+			}
+			.statusclass8 {
+				color: #F0AD4E;
+			}
+			.statusclass9 {
+				color: #2AC845;
+			}
+			.statusclass10 {
+				color: #CCCCCC;
+			}
+		</style>
+		<script>
+			function loaddata() {
+				
+				plus.geolocation.getCurrentPosition( pullorder, function ( e ) {
+					console.log( "获取位置信息失败："+e.message );
+				}, {geocode:true} );
+			}
+			function pullorder(position){
+				mui.ajax('http://180.76.233.59:83/rider/orders/get_orders',{
+				data:{
+					rider_id:app.getState().uid,
+					latitude:"'"+position.coords.latitude+"'",
+					longitude:"'"+position.coords.longitude+"'"
+				},
+				dataType:'json',//服务器返回json格式数据
+				type:'post',//HTTP请求类型
+				timeout:5000,//超时时间设置为10秒；
+				headers:{'Content-Type':'application/json'},	              
+				success:function(data){
+					if(data['status']==0)
+					{
+						var strTemp = '';
+						var statusArray = new Array(11)
+						statusArray[0]="待取送"
+						statusArray[1]="待回派"
+						
+						for(var j=0,tempdata=data['weiqusong'];j<2;j++,tempdata=data['daihuipai']){
+							for(var i=0;i<tempdata.length;i++){
+								strTemp = strTemp+'<div class="mui-card">';
+								strTemp = strTemp+'<div class="mui-card-header statusclass'+j+'">';
+									strTemp = strTemp+statusArray[j];
+								strTemp = strTemp+'</div>';
+								strTemp = strTemp+'<div class="mui-card-content">';
+								strTemp = strTemp+'<div class="mui-card-content-inner">';
+									strTemp = strTemp+'电话：';
+									strTemp = strTemp+tempdata[i]['phone']+'<br>';
+									strTemp = strTemp+'地址：';
+									strTemp = strTemp+tempdata[i]['address']+'<br>';
+									strTemp = strTemp+'姓名：';
+									strTemp = strTemp+tempdata[i]['name']+'<br>';
+									strTemp = strTemp+'品名：';
+									strTemp = strTemp+tempdata[i]['pname']+'<br>';
+									strTemp = strTemp+'个数：';
+									strTemp = strTemp+tempdata[i]['product_nums']+'<br>';
+									strTemp = strTemp+'预计收入：';
+									strTemp = strTemp+tempdata[i]['income']+'<br>';
+									strTemp = strTemp+'订单价值：';
+									strTemp = strTemp+tempdata[i]['price']+'<br>';
+								strTemp = strTemp+'</div>';
+								strTemp = strTemp+'</div>';
+								strTemp = strTemp+'<div class="mui-card-footer">';
+								var lat = j==0?tempdata[i]['latitude']:tempdata[i]['slat'];
+								var lng = j==0?tempdata[i]['longitude']:tempdata[i]['slng'];
+								strTemp = strTemp+'<button onclick="showlocation('+lat+','+lng+','+j+')"  class="mui-btn mui-btn-warning">查看位置</button>';
+								strTemp = strTemp+'<button onclick="graborder('+tempdata[i]['id']+')"  class="mui-btn mui-btn-danger">抢单</button>';
+								strTemp = strTemp+'</div>';
+								strTemp = strTemp+'</div>';
+							}
+						}
+						document.getElementById('order-all').innerHTML = strTemp==''?"啥也没有，要不下拉刷新看看？":strTemp;
+					}
+					else{
+						document.getElementById('order-all').innerHTML = "非法请求！";
+					}
+				},
+				error:function(xhr,type,errorThrown){
+					//异常处理；
+					document.getElementById('order-all').innerHTML = "加载失败，要不下拉刷新看看？";
+				}
+				});
+			}
+			function showlocation(latitude,longitude,j){
+				mui.openWindow({
+					url:"showaddress.html",
+					id:"showaddress",
+					extras:{
+				        latitude:latitude,
+				        longitude:longitude,
+				        action:(j==0)?'fromuser':'fromstation'
+				    }
+				});
+			}
+			function graborder(id){
+				mui.ajax('http://180.76.233.59:83/rider/orders/grab_order',{
+					data:{
+						order_id:id,
+						rider_id:app.getState().uid
+					},
+					dataType:'json',//服务器返回json格式数据
+					type:'post',//HTTP请求类型
+					timeout:5000,//超时时间设置为10秒；
+					headers:{'Content-Type':'application/json'},	              
+					success:function(data){
+						if(data['status']==0)
+							{
+							mui.toast('抢单成功');
+							var orderPage = plus.webview.getWebviewById('allorder.html');
+							mui.fire(orderPage,'pullorder');
+							loaddata();
+							}
+						else{
+							mui.toast('抢单失败');
+						}
+					},
+					error:function(xhr,type,errorThrown){
+						//异常处理；
+						mui.toast('抢单失败');
+					}
+				});
+			}
+		</script>
+	</head>
+
+	<body>
+		<div id="pullrefresh" class="mui-content mui-scroll-wrapper">
+			<div id="order-all" class="mui-scroll">
+					加载中...
+			</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script src="js/app.js"></script>
+		<script>
+			mui.init({
+				swipeBack: false,
+				pullRefresh: {
+					container: '#pullrefresh',
+					down: {
+						callback: pulldownRefresh
+					}
+				}
+			});
+			mui.plusReady(function() {
+				window.setInterval("loaddata()", 10000);
+				loaddata();
+			});
+			/**
+			 * 下拉刷新具体业务实现
+			 */
+			function pulldownRefresh() {
+				setTimeout(function() {
+					loaddata();
+					mui('#pullrefresh').pullRefresh().endPulldownToRefresh();
+				}, 1000);
+			}
+			
+		</script>
+	</body>
+
+</html>
